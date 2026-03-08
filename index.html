@@ -1,0 +1,1318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>MJ AI — Neural Interface</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --mj-green: #00ff88;
+    --mj-cyan: #00d4ff;
+    --mj-dark: #030a06;
+    --mj-panel: rgba(0,255,136,0.04);
+    --mj-border: rgba(0,255,136,0.15);
+    --mj-text: #a0ffcc;
+    --mj-dim: #2a4a38;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--mj-dark);
+    color: var(--mj-text);
+    font-family: 'Rajdhani', sans-serif;
+    height: 100vh;
+    overflow: hidden;
+    user-select: none;
+  }
+
+  /* HEADER */
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--mj-border);
+    background: rgba(0,10,5,0.95);
+    position: relative;
+    z-index: 10;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .logo-icon {
+    width: 28px;
+    height: 28px;
+    border: 2px solid var(--mj-green);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Orbitron', monospace;
+    font-size: 10px;
+    color: var(--mj-green);
+    box-shadow: 0 0 10px rgba(0,255,136,0.4);
+    animation: pulse-logo 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse-logo {
+    0%, 100% { box-shadow: 0 0 10px rgba(0,255,136,0.4); }
+    50% { box-shadow: 0 0 20px rgba(0,255,136,0.8); }
+  }
+
+  .logo-text {
+    font-family: 'Orbitron', monospace;
+    font-size: 14px;
+    font-weight: 900;
+    color: var(--mj-green);
+    letter-spacing: 3px;
+  }
+
+  .logo-sub {
+    font-size: 9px;
+    color: var(--mj-dim);
+    letter-spacing: 2px;
+    font-family: 'Share Tech Mono', monospace;
+  }
+
+  .status-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    color: var(--mj-green);
+  }
+
+  .status-dot {
+    width: 8px;
+    height: 8px;
+    background: var(--mj-green);
+    border-radius: 50%;
+    animation: blink 1.5s ease-in-out infinite;
+    box-shadow: 0 0 6px var(--mj-green);
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  /* TABS */
+  .tabs {
+    display: flex;
+    border-bottom: 1px solid var(--mj-border);
+    background: rgba(0,10,5,0.9);
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .tabs::-webkit-scrollbar { display: none; }
+
+  .tab {
+    padding: 8px 14px;
+    font-size: 10px;
+    font-family: 'Share Tech Mono', monospace;
+    letter-spacing: 1px;
+    color: var(--mj-dim);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+    transition: all 0.2s;
+  }
+
+  .tab.active {
+    color: var(--mj-green);
+    border-bottom-color: var(--mj-green);
+  }
+
+  /* MAIN LAYOUT */
+  .main {
+    display: flex;
+    height: calc(100vh - 88px);
+  }
+
+  /* LEFT PANEL */
+  .left-panel {
+    width: 140px;
+    border-right: 1px solid var(--mj-border);
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background: rgba(0,255,136,0.02);
+    flex-shrink: 0;
+  }
+
+  .panel-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 8px;
+    color: var(--mj-dim);
+    letter-spacing: 2px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid var(--mj-border);
+  }
+
+  .chat-history {
+    flex: 1;
+    overflow-y: auto;
+    scrollbar-width: none;
+  }
+
+  .chat-history::-webkit-scrollbar { display: none; }
+
+  .history-item {
+    padding: 6px 8px;
+    margin-bottom: 4px;
+    border-radius: 4px;
+    font-size: 9px;
+    color: var(--mj-dim);
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all 0.2s;
+    font-family: 'Share Tech Mono', monospace;
+    line-height: 1.4;
+  }
+
+  .history-item:hover, .history-item.active {
+    border-color: var(--mj-border);
+    color: var(--mj-text);
+    background: var(--mj-panel);
+  }
+
+  .metrics-box {
+    border: 1px solid var(--mj-border);
+    border-radius: 4px;
+    padding: 8px;
+    background: var(--mj-panel);
+  }
+
+  .metric-row {
+    display: flex;
+    justify-content: space-between;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 8px;
+    margin-bottom: 4px;
+    color: var(--mj-dim);
+  }
+
+  .metric-val {
+    color: var(--mj-green);
+  }
+
+  /* CENTER - ORB */
+  .center {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .orb-container {
+    position: relative;
+    width: 180px;
+    height: 180px;
+    margin-bottom: 20px;
+    cursor: pointer;
+  }
+
+  .orb-ring {
+    position: absolute;
+    inset: -15px;
+    border-radius: 50%;
+    border: 1px solid rgba(0,255,136,0.1);
+    animation: ring-rotate 8s linear infinite;
+  }
+
+  .orb-ring::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: 50%;
+    width: 4px;
+    height: 4px;
+    background: var(--mj-green);
+    border-radius: 50%;
+    box-shadow: 0 0 8px var(--mj-green);
+    transform: translateX(-50%);
+  }
+
+  @keyframes ring-rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  canvas#orbCanvas {
+    width: 180px;
+    height: 180px;
+    border-radius: 50%;
+  }
+
+  .orb-label {
+    position: absolute;
+    bottom: -30px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px;
+    color: var(--mj-dim);
+    letter-spacing: 2px;
+    white-space: nowrap;
+  }
+
+  /* VOICE CONTROLS */
+  .voice-controls {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    margin-top: 40px;
+  }
+
+  .ctrl-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 1px solid var(--mj-border);
+    background: var(--mj-panel);
+    color: var(--mj-text);
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+  }
+
+  .ctrl-btn:hover { border-color: var(--mj-green); }
+
+  .ctrl-btn.main-mic {
+    width: 56px;
+    height: 56px;
+    border-color: var(--mj-green);
+    background: rgba(0,255,136,0.1);
+    box-shadow: 0 0 20px rgba(0,255,136,0.2);
+    font-size: 20px;
+  }
+
+  .ctrl-btn.main-mic.listening {
+    background: rgba(0,255,136,0.25);
+    box-shadow: 0 0 30px rgba(0,255,136,0.5);
+    animation: mic-pulse 0.8s ease-in-out infinite;
+  }
+
+  @keyframes mic-pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.08); }
+  }
+
+  /* RIGHT PANEL - TRANSCRIPT */
+  .right-panel {
+    width: 160px;
+    border-left: 1px solid var(--mj-border);
+    padding: 12px;
+    background: rgba(0,255,136,0.02);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  .transcript-box {
+    flex: 1;
+    overflow-y: auto;
+    scrollbar-width: none;
+  }
+  .transcript-box::-webkit-scrollbar { display: none; }
+
+  .transcript-msg {
+    margin-bottom: 10px;
+    padding: 6px 8px;
+    border-radius: 4px;
+    font-size: 9px;
+    line-height: 1.5;
+    font-family: 'Share Tech Mono', monospace;
+  }
+
+  .transcript-msg.user {
+    background: rgba(0,212,255,0.08);
+    border-left: 2px solid var(--mj-cyan);
+    color: var(--mj-cyan);
+  }
+
+  .transcript-msg.mj {
+    background: rgba(0,255,136,0.06);
+    border-left: 2px solid var(--mj-green);
+    color: var(--mj-text);
+  }
+
+  .msg-label {
+    font-size: 7px;
+    letter-spacing: 1px;
+    margin-bottom: 3px;
+    opacity: 0.6;
+  }
+
+  /* MODALS */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    display: none;
+  }
+
+  .modal-overlay.show { display: flex; }
+
+  .modal {
+    background: #050f08;
+    border: 1px solid var(--mj-green);
+    border-radius: 8px;
+    padding: 20px;
+    width: 300px;
+    max-width: 90vw;
+    box-shadow: 0 0 40px rgba(0,255,136,0.2);
+    position: relative;
+  }
+
+  .modal-title {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    color: var(--mj-green);
+    letter-spacing: 2px;
+    margin-bottom: 16px;
+    padding-right: 30px;
+  }
+
+  .modal-close {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    background: rgba(255,50,50,0.2);
+    border: 1px solid rgba(255,50,50,0.4);
+    color: #ff5555;
+    padding: 3px 8px;
+    border-radius: 3px;
+    font-size: 9px;
+    cursor: pointer;
+    font-family: 'Share Tech Mono', monospace;
+  }
+
+  .modal input, .modal textarea {
+    width: 100%;
+    background: var(--mj-panel);
+    border: 1px solid var(--mj-border);
+    border-radius: 4px;
+    padding: 10px;
+    color: var(--mj-text);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    margin-bottom: 10px;
+    outline: none;
+  }
+
+  .modal input:focus, .modal textarea:focus {
+    border-color: var(--mj-green);
+  }
+
+  .modal-btn {
+    width: 100%;
+    padding: 10px;
+    background: rgba(0,255,136,0.15);
+    border: 1px solid var(--mj-green);
+    color: var(--mj-green);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    border-radius: 4px;
+    cursor: pointer;
+    letter-spacing: 2px;
+    transition: all 0.2s;
+  }
+
+  .modal-btn:hover { background: rgba(0,255,136,0.25); }
+
+  .img-preview {
+    width: 100%;
+    border-radius: 6px;
+    margin-top: 10px;
+    display: none;
+    border: 1px solid var(--mj-border);
+  }
+
+  .loader {
+    text-align: center;
+    padding: 20px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    color: var(--mj-dim);
+    display: none;
+  }
+
+  .loader.show { display: block; }
+
+  .spinner {
+    width: 30px;
+    height: 30px;
+    border: 2px solid var(--mj-border);
+    border-top-color: var(--mj-green);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto 10px;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  /* NOTIFICATION */
+  .notif {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,255,136,0.15);
+    border: 1px solid var(--mj-green);
+    color: var(--mj-green);
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    z-index: 200;
+    display: none;
+    text-align: center;
+    max-width: 90vw;
+  }
+
+  .notif.show { display: block; animation: notif-in 0.3s ease; }
+
+  @keyframes notif-in {
+    from { opacity: 0; transform: translateX(-50%) translateY(10px); }
+    to { opacity: 1; transform: translateX(-50%) translateY(0); }
+  }
+
+  /* API KEY SETUP */
+  .setup-screen {
+    position: fixed;
+    inset: 0;
+    background: var(--mj-dark);
+    z-index: 500;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 30px;
+  }
+
+  .setup-logo {
+    font-family: 'Orbitron', monospace;
+    font-size: 32px;
+    font-weight: 900;
+    color: var(--mj-green);
+    letter-spacing: 8px;
+    margin-bottom: 6px;
+    text-shadow: 0 0 30px rgba(0,255,136,0.5);
+  }
+
+  .setup-sub {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    color: var(--mj-dim);
+    letter-spacing: 3px;
+    margin-bottom: 40px;
+  }
+
+  .setup-form {
+    width: 100%;
+    max-width: 320px;
+  }
+
+  .setup-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px;
+    color: var(--mj-dim);
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+  }
+
+  .setup-input {
+    width: 100%;
+    background: var(--mj-panel);
+    border: 1px solid var(--mj-border);
+    border-radius: 4px;
+    padding: 12px;
+    color: var(--mj-text);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+    margin-bottom: 16px;
+    outline: none;
+  }
+
+  .setup-input:focus { border-color: var(--mj-green); }
+
+  .setup-btn {
+    width: 100%;
+    padding: 14px;
+    background: rgba(0,255,136,0.15);
+    border: 1px solid var(--mj-green);
+    color: var(--mj-green);
+    font-family: 'Orbitron', monospace;
+    font-size: 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    letter-spacing: 3px;
+    box-shadow: 0 0 20px rgba(0,255,136,0.2);
+    transition: all 0.2s;
+  }
+
+  .setup-btn:hover { background: rgba(0,255,136,0.25); box-shadow: 0 0 30px rgba(0,255,136,0.4); }
+
+  .setup-hint {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px;
+    color: var(--mj-dim);
+    text-align: center;
+    margin-top: 16px;
+    line-height: 1.6;
+  }
+
+  .setup-hint a { color: var(--mj-green); }
+
+  /* GRID BACKGROUND */
+  .grid-bg {
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,255,136,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,255,136,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .content { position: relative; z-index: 1; width: 100%; height: 100%; }
+
+  /* IMAGE GALLERY */
+  .gallery-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    padding: 8px 0;
+  }
+
+  .gallery-img {
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: cover;
+    border-radius: 4px;
+    border: 1px solid var(--mj-border);
+  }
+</style>
+</head>
+<body>
+
+<div class="grid-bg"></div>
+
+<!-- SETUP SCREEN -->
+<div class="setup-screen" id="setupScreen">
+  <div class="setup-logo">MJ</div>
+  <div class="setup-sub">NEURAL INTERFACE v2.5</div>
+  <div class="setup-form">
+    <div class="setup-label">// ANTHROPIC API KEY</div>
+    <input type="password" class="setup-input" id="apiKeyInput" placeholder="sk-or-v1-..." />
+    <button class="setup-btn" onclick="initMJ()">▶ INITIALIZE MJ</button>
+    <div class="setup-hint">
+      Get free API key at<br>
+      <a href="https://openrouter.ai/keys" target="_blank">openrouter.ai/keys</a><br><br>
+      Key is stored locally on your device only.
+    </div>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div class="content" id="mainApp" style="display:none;">
+  <!-- Header -->
+  <div class="header">
+    <div class="logo">
+      <div class="logo-icon">I</div>
+      <div>
+        <div class="logo-text">MJ AI</div>
+        <div class="logo-sub">NEURAL INTERFACE</div>
+      </div>
+    </div>
+    <div class="status-badge">
+      <div class="status-dot" id="statusDot"></div>
+      <span id="statusText">ONLINE</span>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('dashboard', this)">⬡ DASHBOARD</div>
+    <div class="tab" onclick="switchTab('gallery', this)">◈ GALLERY</div>
+    <div class="tab" onclick="switchTab('whatsapp', this)">◉ PHONE</div>
+    <div class="tab" onclick="switchTab('settings', this)">⚙ SETTINGS</div>
+  </div>
+
+  <!-- Main -->
+  <div class="main">
+    <!-- Left Panel -->
+    <div class="left-panel">
+      <div class="panel-label">// HISTORY</div>
+      <div class="chat-history" id="chatHistory">
+        <div class="history-item active">Session 001</div>
+      </div>
+      <div class="metrics-box">
+        <div class="panel-label">// METRICS</div>
+        <div class="metric-row"><span>MODEL</span><span class="metric-val">CLAUDE</span></div>
+        <div class="metric-row"><span>MSGS</span><span class="metric-val" id="msgCount">0</span></div>
+        <div class="metric-row"><span>IMGS</span><span class="metric-val" id="imgCount">0</span></div>
+        <div class="metric-row"><span>STATUS</span><span class="metric-val" id="mStatus">IDLE</span></div>
+      </div>
+    </div>
+
+    <!-- Center -->
+    <div class="center" id="dashboardTab">
+      <div class="orb-container" onclick="toggleListen()">
+        <div class="orb-ring"></div>
+        <canvas id="orbCanvas" width="180" height="180"></canvas>
+        <div class="orb-label" id="orbLabel">TAP TO SPEAK</div>
+      </div>
+
+      <div class="voice-controls">
+        <button class="ctrl-btn" onclick="openImageModal()" title="Generate Image">🎨</button>
+        <button class="ctrl-btn main-mic" id="micBtn" onclick="toggleListen()">🎤</button>
+        <button class="ctrl-btn" onclick="openWhatsAppModal()" title="WhatsApp">💬</button>
+      </div>
+
+      <!-- Text input fallback -->
+      <div style="margin-top: 16px; display: flex; gap: 6px; width: 90%; max-width: 280px;">
+        <input type="text" id="textInput" placeholder="Type command..." 
+          style="flex:1; background: rgba(0,255,136,0.05); border: 1px solid var(--mj-border); border-radius: 4px; padding: 8px 10px; color: var(--mj-text); font-family: 'Share Tech Mono'; font-size: 10px; outline: none;"
+          onkeydown="if(event.key==='Enter') sendText()" />
+        <button onclick="sendText()" style="background: rgba(0,255,136,0.1); border: 1px solid var(--mj-green); color: var(--mj-green); border-radius: 4px; padding: 8px 12px; font-size: 14px; cursor: pointer;">→</button>
+      </div>
+    </div>
+
+    <!-- Gallery Tab -->
+    <div class="center" id="galleryTab" style="display:none; padding: 10px; overflow-y: auto; align-items: flex-start;">
+      <div style="width:100%;">
+        <div class="panel-label" style="margin-bottom:8px;">// GENERATED IMAGES</div>
+        <div class="gallery-grid" id="galleryGrid">
+          <div style="font-family:'Share Tech Mono';font-size:9px;color:var(--mj-dim);grid-column:span 2;text-align:center;padding:20px;">
+            No images yet. Say "generate image" to create one.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- WhatsApp Tab -->
+    <div class="center" id="whatsappTab" style="display:none; padding: 14px; flex-direction: column; align-items: flex-start; overflow-y: auto;">
+      <div class="panel-label" style="margin-bottom:12px;">// WHATSAPP MESSAGE</div>
+      <div style="width:100%; max-width: 300px;">
+        <div class="setup-label">Contact Number (with country code)</div>
+        <input type="tel" id="waNumber" placeholder="+91 9876543210" 
+          style="width:100%; background: var(--mj-panel); border: 1px solid var(--mj-border); border-radius:4px; padding:10px; color: var(--mj-text); font-family:'Share Tech Mono'; font-size:11px; margin-bottom:10px; outline:none;" />
+        <div class="setup-label">Message</div>
+        <textarea id="waMessage" rows="4" placeholder="Type your message..."
+          style="width:100%; background: var(--mj-panel); border: 1px solid var(--mj-border); border-radius:4px; padding:10px; color: var(--mj-text); font-family:'Share Tech Mono'; font-size:11px; margin-bottom:10px; outline:none; resize:none;"></textarea>
+        <button class="modal-btn" onclick="sendWhatsApp()">▶ SEND VIA WHATSAPP</button>
+      </div>
+    </div>
+
+    <!-- Settings Tab -->
+    <div class="center" id="settingsTab" style="display:none; padding: 14px; flex-direction: column; align-items: flex-start; overflow-y:auto;">
+      <div class="panel-label" style="margin-bottom:12px;">// SETTINGS</div>
+      <div style="width:100%; max-width: 300px;">
+        <div class="setup-label">Change API Key</div>
+        <input type="password" id="newApiKey" placeholder="sk-or-v1-..." 
+          style="width:100%; background: var(--mj-panel); border: 1px solid var(--mj-border); border-radius:4px; padding:10px; color: var(--mj-text); font-family:'Share Tech Mono'; font-size:11px; margin-bottom:10px; outline:none;" />
+        <button class="modal-btn" onclick="updateApiKey()" style="margin-bottom:16px;">UPDATE KEY</button>
+
+        <div class="setup-label">AI Model (Free)</div>
+        <select id="modelSelect" onchange="updateModel()"
+          style="width:100%; background: var(--mj-panel); border: 1px solid var(--mj-border); border-radius:4px; padding:10px; color: var(--mj-text); font-family:'Share Tech Mono'; font-size:10px; margin-bottom:16px; outline:none;">
+          <option value="google/gemma-3-27b-it:free">Gemma 3 27B ⭐ (Recommended)</option>
+          <option value="meta-llama/llama-3.3-70b-instruct:free">Llama 3.3 70B 🔥</option>
+          <option value="mistralai/mistral-small-3.1-24b-instruct:free">Mistral Small 24B</option>
+          <option value="google/gemma-3-12b-it:free">Gemma 3 12B</option>
+          <option value="google/gemma-3-4b-it:free">Gemma 3 4B (Fast)</option>
+          <option value="qwen/qwen3-4b:free">Qwen3 4B</option>
+        </select>
+
+        <div class="setup-label">MJ Personality</div>
+        <textarea id="mjPersonality" rows="4"
+          style="width:100%; background: var(--mj-panel); border: 1px solid var(--mj-border); border-radius:4px; padding:10px; color: var(--mj-text); font-family:'Share Tech Mono'; font-size:11px; margin-bottom:10px; outline:none; resize:none;">You are MJ, an advanced AI assistant. Be concise, helpful, and slightly futuristic in tone. Keep responses short and crisp.</textarea>
+        <button class="modal-btn" onclick="saveSettings()">💾 SAVE SETTINGS</button>
+      </div>
+    </div>
+
+    <!-- Right Panel -->
+    <div class="right-panel">
+      <div class="panel-label">// TRANSCRIPT</div>
+      <div class="transcript-box" id="transcriptBox">
+        <div style="font-family:'Share Tech Mono';font-size:9px;color:var(--mj-dim);text-align:center;padding:10px;">
+          Awaiting input...
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Image Modal -->
+<div class="modal-overlay" id="imageModal">
+  <div class="modal">
+    <div class="modal-title">// MJ IMAGE GENERATOR</div>
+    <button class="modal-close" onclick="closeModal('imageModal')">CLOSE</button>
+    <input type="text" id="imgPrompt" placeholder="Describe your image..." />
+    <button class="modal-btn" onclick="generateImage()">⚡ GENERATE IMAGE</button>
+    <div class="loader" id="imgLoader">
+      <div class="spinner"></div>
+      MJ IS CRAFTING YOUR IMAGE...
+    </div>
+    <img class="img-preview" id="imgPreview" />
+    <button class="modal-btn" id="saveImgBtn" style="display:none; margin-top:8px;" onclick="saveToGallery()">◈ SAVE TO GALLERY</button>
+  </div>
+</div>
+
+<!-- WhatsApp Modal -->
+<div class="modal-overlay" id="waModal">
+  <div class="modal">
+    <div class="modal-title">// WHATSAPP SEND</div>
+    <button class="modal-close" onclick="closeModal('waModal')">CLOSE</button>
+    <input type="tel" id="waModalNum" placeholder="+91 9876543210" />
+    <textarea id="waModalMsg" rows="4" placeholder="Message..."></textarea>
+    <button class="modal-btn" onclick="sendWhatsAppModal()">▶ OPEN WHATSAPP</button>
+  </div>
+</div>
+
+<!-- Notification -->
+<div class="notif" id="notif"></div>
+
+<script>
+  let API_KEY = '';
+  let isListening = false;
+  let recognition = null;
+  let orbCtx, animFrame;
+  let orbState = 'idle'; // idle, listening, thinking
+  let particles = [];
+  let msgCount = 0;
+  let imgCountN = 0;
+  let galleryImages = [];
+  let currentImgUrl = '';
+  let currentModel = localStorage.getItem('mj_model') || 'google/gemma-3-27b-it:free';
+  let conversationHistory = [];
+
+  // ORB ANIMATION
+  function initOrb() {
+    const canvas = document.getElementById('orbCanvas');
+    orbCtx = canvas.getContext('2d');
+    for (let i = 0; i < 200; i++) {
+      particles.push(createParticle());
+    }
+    animateOrb();
+  }
+
+  function createParticle() {
+    const theta = Math.random() * Math.PI * 2;
+    const phi = Math.random() * Math.PI;
+    const r = 80 + (Math.random() - 0.5) * 20;
+    return {
+      x: r * Math.sin(phi) * Math.cos(theta),
+      y: r * Math.sin(phi) * Math.sin(theta),
+      z: r * Math.cos(phi),
+      speed: (Math.random() - 0.5) * 0.5,
+      size: Math.random() * 1.5 + 0.5,
+      theta, phi, r,
+      vTheta: (Math.random() - 0.5) * 0.01,
+      vPhi: (Math.random() - 0.5) * 0.005,
+    };
+  }
+
+  function animateOrb() {
+    const c = orbCtx;
+    const W = 180, H = 180;
+    c.clearRect(0, 0, W, H);
+
+    const cx = W/2, cy = H/2;
+    const time = Date.now() * 0.001;
+
+    let color = orbState === 'idle' ? [100,200,150] :
+                orbState === 'listening' ? [0,255,136] :
+                [0,212,255];
+
+    // Core glow
+    const grad = c.createRadialGradient(cx, cy, 0, cx, cy, 90);
+    grad.addColorStop(0, `rgba(${color},0.15)`);
+    grad.addColorStop(1, 'rgba(0,0,0,0)');
+    c.fillStyle = grad;
+    c.beginPath();
+    c.arc(cx, cy, 90, 0, Math.PI*2);
+    c.fill();
+
+    // Particles
+    particles.forEach(p => {
+      p.theta += p.vTheta + (orbState === 'listening' ? 0.02 : 0.005);
+      p.phi += p.vPhi;
+
+      const noise = orbState === 'listening' ? Math.sin(time * 3 + p.theta) * 10 : 0;
+      const r = p.r + noise;
+
+      const x3d = r * Math.sin(p.phi) * Math.cos(p.theta);
+      const y3d = r * Math.sin(p.phi) * Math.sin(p.theta);
+      const z3d = r * Math.cos(p.phi);
+
+      const perspective = 300 / (300 + z3d + 80);
+      const sx = cx + x3d * perspective;
+      const sy = cy + y3d * perspective;
+      const brightness = (z3d + 90) / 180;
+
+      c.beginPath();
+      c.arc(sx, sy, p.size * perspective, 0, Math.PI*2);
+      c.fillStyle = `rgba(${color[0]},${color[1]},${color[2]},${brightness * 0.7})`;
+      c.fill();
+    });
+
+    animFrame = requestAnimationFrame(animateOrb);
+  }
+
+  // INIT MJ
+  function initMJ() {
+    const key = document.getElementById('apiKeyInput').value.trim();
+    if (!key.startsWith('sk-or-')) {
+      showNotif('❌ Invalid API key format!');
+      return;
+    }
+    API_KEY = key;
+    localStorage.setItem('mj_api_key', key);
+    document.getElementById('setupScreen').style.display = 'none';
+    document.getElementById('mainApp').style.display = 'block';
+    initOrb();
+    initSpeech();
+    showNotif('✅ MJ INITIALIZED');
+  }
+
+  // Check saved key
+  window.onload = function() {
+    const saved = localStorage.getItem('mj_api_key');
+    if (saved) {
+      API_KEY = saved;
+      document.getElementById('setupScreen').style.display = 'none';
+      document.getElementById('mainApp').style.display = 'block';
+      initOrb();
+      initSpeech();
+    }
+  };
+
+  // SPEECH RECOGNITION
+  function initSpeech() {
+    if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+      showNotif('⚠️ Voice not supported in this browser. Use Chrome!');
+      return;
+    }
+
+    // First request mic permission explicitly
+    navigator.mediaDevices.getUserMedia({ audio: true })
+      .then(stream => {
+        stream.getTracks().forEach(t => t.stop()); // stop stream, just needed permission
+        setupRecognition();
+        showNotif('✅ Mic permission granted!');
+      })
+      .catch(err => {
+        showNotif('❌ Mic blocked! Allow mic in browser settings.');
+        document.getElementById('orbLabel').textContent = 'MIC BLOCKED';
+      });
+  }
+
+  function setupRecognition() {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    recognition = new SR();
+    recognition.continuous = false;
+    recognition.interimResults = true; // show live text
+    recognition.lang = 'hi-IN'; // Hindi primary
+
+    recognition.onstart = () => {
+      orbState = 'listening';
+      document.getElementById('orbLabel').textContent = 'BOL RAHA HU...';
+      document.getElementById('micBtn').classList.add('listening');
+      document.getElementById('mStatus').textContent = 'LISTEN';
+      document.getElementById('textInput').placeholder = '🎤 Sun raha hun...';
+    };
+
+    recognition.onresult = (e) => {
+      let interim = '';
+      let final = '';
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        if (e.results[i].isFinal) {
+          final += e.results[i][0].transcript;
+        } else {
+          interim += e.results[i][0].transcript;
+        }
+      }
+      // Show live interim in text input
+      if (interim) {
+        document.getElementById('textInput').value = interim;
+      }
+      if (final) {
+        document.getElementById('textInput').value = final;
+        processCommand(final);
+      }
+    };
+
+    recognition.onend = () => {
+      isListening = false;
+      if (orbState === 'listening') orbState = 'idle';
+      document.getElementById('orbLabel').textContent = 'TAP TO SPEAK';
+      document.getElementById('micBtn').classList.remove('listening');
+      document.getElementById('textInput').placeholder = 'Type command...';
+    };
+
+    recognition.onerror = (e) => {
+      isListening = false;
+      orbState = 'idle';
+      document.getElementById('micBtn').classList.remove('listening');
+      document.getElementById('orbLabel').textContent = 'TAP TO SPEAK';
+      document.getElementById('mStatus').textContent = 'IDLE';
+
+      if (e.error === 'not-allowed') {
+        showNotif('❌ Mic blocked! Chrome settings mein allow karo.');
+      } else if (e.error === 'no-speech') {
+        showNotif('⚠️ Koi awaaz nahi aayi, phir try karo.');
+      } else if (e.error === 'network') {
+        showNotif('❌ Network error! Internet check karo.');
+      } else {
+        showNotif('Voice error: ' + e.error + ' — Text input use karo.');
+      }
+    };
+  }
+
+  function toggleListen() {
+    if (!recognition) {
+      // Try to init again
+      initSpeech();
+      return;
+    }
+    if (isListening) {
+      recognition.stop();
+      isListening = false;
+    } else {
+      try {
+        // Try Hindi first, fallback to English
+        recognition.lang = 'hi-IN';
+        recognition.start();
+        isListening = true;
+      } catch(e) {
+        showNotif('⚠️ Voice busy, ek second ruko...');
+        setTimeout(() => {
+          try { recognition.start(); isListening = true; } catch(e2) {}
+        }, 500);
+      }
+    }
+  }
+
+  function sendText() {
+    const input = document.getElementById('textInput');
+    const text = input.value.trim();
+    if (!text) return;
+    input.value = '';
+    processCommand(text);
+  }
+
+  // PROCESS COMMANDS
+  async function processCommand(text) {
+    addTranscript('user', text);
+    orbState = 'thinking';
+    document.getElementById('orbLabel').textContent = 'PROCESSING...';
+    document.getElementById('mStatus').textContent = 'THINK';
+    msgCount++;
+    document.getElementById('msgCount').textContent = msgCount;
+
+    const lower = text.toLowerCase();
+
+    // IMAGE COMMAND
+    if (lower.includes('image') || lower.includes('generate') || lower.includes('bana') || lower.includes('draw')) {
+      addTranscript('mj', 'Generating image for you...');
+      openImageModal();
+      document.getElementById('imgPrompt').value = text.replace(/generate|image|bana|draw|karo|banao/gi, '').trim();
+      orbState = 'idle';
+      document.getElementById('orbLabel').textContent = 'TAP TO SPEAK';
+      return;
+    }
+
+    // WHATSAPP COMMAND
+    if (lower.includes('whatsapp') || lower.includes('message') || lower.includes('msg') || lower.includes('bhejo')) {
+      addTranscript('mj', 'Opening WhatsApp sender...');
+      openWhatsAppModal();
+      const msgMatch = text.match(/(?:ko|to)(.+?)(?:message|msg|bhejo|send)/i);
+      if (msgMatch) document.getElementById('waModalMsg').value = msgMatch[1].trim();
+      orbState = 'idle';
+      document.getElementById('orbLabel').textContent = 'TAP TO SPEAK';
+      return;
+    }
+
+    // AI CHAT
+    try {
+      const response = await callClaude(text);
+      addTranscript('mj', response);
+      speak(response);
+    } catch(e) {
+      addTranscript('mj', 'Error: ' + e.message);
+      showNotif('❌ API Error: ' + e.message);
+    }
+
+    orbState = 'idle';
+    document.getElementById('orbLabel').textContent = 'TAP TO SPEAK';
+    document.getElementById('mStatus').textContent = 'IDLE';
+  }
+
+  async function callClaude(userMsg) {
+    conversationHistory.push({ role: 'user', content: userMsg });
+
+    const personality = document.getElementById('mjPersonality')?.value ||
+      'You are MJ, an advanced AI assistant. Be concise and crisp.';
+
+    // Build messages with system prompt for OpenRouter
+    const messages = [
+      { role: 'system', content: personality },
+      ...conversationHistory
+    ];
+
+    const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${API_KEY}`,
+        'HTTP-Referer': 'https://raj1005254-ui.github.io',
+        'X-Title': 'MJ AI Assistant'
+      },
+      body: JSON.stringify({
+        model: currentModel,
+        max_tokens: 300,
+        messages: messages
+      })
+    });
+
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error?.message || 'API failed');
+    }
+
+    const data = await res.json();
+    const reply = data.choices[0].message.content;
+    conversationHistory.push({ role: 'assistant', content: reply });
+    return reply;
+  }
+
+  // IMAGE GENERATION
+  function openImageModal() {
+    document.getElementById('imageModal').classList.add('show');
+  }
+
+  async function generateImage() {
+    const prompt = document.getElementById('imgPrompt').value.trim();
+    if (!prompt) { showNotif('Enter a description!'); return; }
+
+    document.getElementById('imgLoader').classList.add('show');
+    document.getElementById('imgPreview').style.display = 'none';
+    document.getElementById('saveImgBtn').style.display = 'none';
+
+    try {
+      // Use pollinations.ai - free, no API key needed
+      const encodedPrompt = encodeURIComponent(prompt + ', cinematic, high quality, detailed');
+      const imgUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=512&height=512&nologo=true&seed=${Date.now()}`;
+
+      const img = document.getElementById('imgPreview');
+      img.onload = () => {
+        document.getElementById('imgLoader').classList.remove('show');
+        img.style.display = 'block';
+        document.getElementById('saveImgBtn').style.display = 'block';
+        currentImgUrl = imgUrl;
+        imgCountN++;
+        document.getElementById('imgCount').textContent = imgCountN;
+      };
+      img.onerror = () => {
+        document.getElementById('imgLoader').classList.remove('show');
+        showNotif('Image generation failed, try again');
+      };
+      img.src = imgUrl;
+    } catch(e) {
+      document.getElementById('imgLoader').classList.remove('show');
+      showNotif('Error: ' + e.message);
+    }
+  }
+
+  function saveToGallery() {
+    galleryImages.push({ url: currentImgUrl, prompt: document.getElementById('imgPrompt').value });
+    updateGallery();
+    closeModal('imageModal');
+    showNotif('✅ Saved to Gallery!');
+    switchTab('gallery', document.querySelector('.tab:nth-child(2)'));
+  }
+
+  function updateGallery() {
+    const grid = document.getElementById('galleryGrid');
+    if (galleryImages.length === 0) return;
+    grid.innerHTML = galleryImages.map(img =>
+      `<img class="gallery-img" src="${img.url}" alt="${img.prompt}" />`
+    ).join('');
+  }
+
+  // WHATSAPP
+  function openWhatsAppModal() {
+    document.getElementById('waModal').classList.add('show');
+  }
+
+  function sendWhatsAppModal() {
+    const num = document.getElementById('waModalNum').value.replace(/[^0-9+]/g,'');
+    const msg = document.getElementById('waModalMsg').value;
+    if (!num || !msg) { showNotif('Fill number and message!'); return; }
+    const url = `https://wa.me/${num}?text=${encodeURIComponent(msg)}`;
+    window.open(url, '_blank');
+    closeModal('waModal');
+    showNotif('✅ WhatsApp opened!');
+  }
+
+  function sendWhatsApp() {
+    const num = document.getElementById('waNumber').value.replace(/[^0-9+]/g,'');
+    const msg = document.getElementById('waMessage').value;
+    if (!num || !msg) { showNotif('Fill number and message!'); return; }
+    const url = `https://wa.me/${num}?text=${encodeURIComponent(msg)}`;
+    window.open(url, '_blank');
+    showNotif('✅ WhatsApp opened!');
+  }
+
+  // TRANSCRIPT
+  function addTranscript(role, text) {
+    const box = document.getElementById('transcriptBox');
+    const el = document.createElement('div');
+    el.className = `transcript-msg ${role}`;
+    el.innerHTML = `<div class="msg-label">${role === 'user' ? '▶ YOU' : '◆ MJ'}</div>${text}`;
+    box.appendChild(el);
+    box.scrollTop = box.scrollHeight;
+
+    // Also add to history sidebar
+    if (role === 'user') {
+      const hist = document.getElementById('chatHistory');
+      const item = document.createElement('div');
+      item.className = 'history-item';
+      item.textContent = text.substring(0, 20) + '...';
+      hist.appendChild(item);
+    }
+  }
+
+  // SPEAK
+  function speak(text) {
+    if (!('speechSynthesis' in window)) {
+      showNotif('⚠️ Voice output not supported');
+      return;
+    }
+
+    // Cancel any ongoing speech
+    speechSynthesis.cancel();
+
+    const utt = new SpeechSynthesisUtterance(text);
+    utt.rate = 0.95;
+    utt.pitch = 1.1;
+    utt.volume = 1;
+
+    // Pick best available voice
+    const voices = speechSynthesis.getVoices();
+    const preferred = voices.find(v =>
+      v.name.includes('Google') ||
+      v.name.includes('Samantha') ||
+      v.name.includes('Karen') ||
+      v.name.includes('Daniel') ||
+      v.name.includes('Female')
+    );
+    if (preferred) utt.voice = preferred;
+
+    // Orb speaking animation
+    utt.onstart = () => {
+      orbState = 'thinking';
+      document.getElementById('orbLabel').textContent = 'MJ SPEAKING...';
+      document.getElementById('mStatus').textContent = 'SPEAK';
+    };
+
+    utt.onend = () => {
+      orbState = 'idle';
+      document.getElementById('orbLabel').textContent = 'TAP TO SPEAK';
+      document.getElementById('mStatus').textContent = 'IDLE';
+    };
+
+    utt.onerror = () => {
+      orbState = 'idle';
+      document.getElementById('orbLabel').textContent = 'TAP TO SPEAK';
+    };
+
+    // Android fix — voices load async
+    if (voices.length === 0) {
+      speechSynthesis.onvoiceschanged = () => {
+        const v2 = speechSynthesis.getVoices();
+        const best = v2.find(v =>
+          v.name.includes('Google') || v.name.includes('Samantha')
+        );
+        if (best) utt.voice = best;
+        speechSynthesis.speak(utt);
+      };
+    } else {
+      speechSynthesis.speak(utt);
+    }
+  }
+
+  // TABS
+  function switchTab(tab, el) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    if (el) el.classList.add('active');
+    document.getElementById('dashboardTab').style.display = tab === 'dashboard' ? 'flex' : 'none';
+    document.getElementById('galleryTab').style.display = tab === 'gallery' ? 'flex' : 'none';
+    document.getElementById('whatsappTab').style.display = tab === 'whatsapp' ? 'flex' : 'none';
+    document.getElementById('settingsTab').style.display = tab === 'settings' ? 'flex' : 'none';
+  }
+
+  // MODALS
+  function closeModal(id) {
+    document.getElementById(id).classList.remove('show');
+  }
+
+  // NOTIFICATION
+  function showNotif(msg) {
+    const n = document.getElementById('notif');
+    n.textContent = msg;
+    n.classList.add('show');
+    setTimeout(() => n.classList.remove('show'), 3000);
+  }
+
+  function updateModel() {
+    currentModel = document.getElementById('modelSelect').value;
+  }
+
+  function saveSettings() {
+    const key = document.getElementById('newApiKey').value.trim();
+    if (key && key.startsWith('sk-or-')) {
+      API_KEY = key;
+      localStorage.setItem('mj_api_key', key);
+    }
+    currentModel = document.getElementById('modelSelect').value;
+    localStorage.setItem('mj_model', currentModel);
+    showNotif('✅ Settings saved!');
+  }
+
+  // SETTINGS
+  function updateApiKey() {
+    const key = document.getElementById('newApiKey').value.trim();
+    if (!key.startsWith('sk-or-')) { showNotif('Invalid key!'); return; }
+    API_KEY = key;
+    localStorage.setItem('mj_api_key', key);
+    showNotif('✅ API Key updated!');
+  }
+</script>
+</body>
+</html>
